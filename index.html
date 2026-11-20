@@ -1,0 +1,1982 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#000000" />
+  <title>HubOS 26 — Ad-Free iOS Suite</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- JSZip for Demus .playlist extraction -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <!-- Google Identity Services (Optional live Google OAuth 2.0) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <style>
+    :root {
+      --am-red: #FA243C;
+      --am-pink: #FA586A;
+      --am-bg: #000000;
+      --am-card: #1C1C1E;
+      --am-card-2: #2C2C2E;
+      --glass-border: rgba(255, 255, 255, 0.14);
+      --safe-top: env(safe-area-inset-top, 14px);
+      --safe-bottom: env(safe-area-inset-bottom, 16px);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    input, textarea {
+      user-select: text;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #050507;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+      overflow: hidden;
+    }
+
+    /* Desktop Device Bezel Wrapper */
+    @media (min-width: 520px) {
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle at 50% 20%, #1a1b26 0%, #050507 80%);
+      }
+      #ios-shell {
+        width: 412px;
+        height: 874px;
+        border-radius: 54px;
+        border: 8px solid #242428;
+        box-shadow: 0 35px 90px rgba(0, 0, 0, 0.85), inset 0 0 0 1.5px rgba(255, 255, 255, 0.15);
+        overflow: hidden;
+        position: relative;
+      }
+    }
+
+    @media (max-width: 519px) {
+      #ios-shell {
+        width: 100vw;
+        height: 100dvh;
+        position: relative;
+        overflow: hidden;
+      }
+    }
+
+    /* iOS 26 Liquid Glass Surfaces */
+    .liquid-glass {
+      background: rgba(28, 28, 32, 0.68);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .liquid-glass-heavy {
+      background: rgba(18, 18, 20, 0.86);
+      backdrop-filter: blur(36px) saturate(210%);
+      -webkit-backdrop-filter: blur(36px) saturate(210%);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .ios-wallpaper {
+      background:
+        radial-gradient(circle at 18% 15%, rgba(250, 36, 60, 0.28), transparent 45%),
+        radial-gradient(circle at 82% 25%, rgba(56, 189, 248, 0.24), transparent 45%),
+        radial-gradient(circle at 50% 80%, rgba(168, 85, 247, 0.22), transparent 50%),
+        linear-gradient(180deg, #0b0c12 0%, #050508 100%);
+    }
+
+    /* Apple Squircle App Icons */
+    .squircle {
+      border-radius: 24px;
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+      transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .squircle:active {
+      transform: scale(0.92);
+    }
+
+    .apple-music-icon-bg {
+      background: linear-gradient(180deg, #FA586A 0%, #FA243C 100%);
+    }
+    .reddit-icon-bg {
+      background: linear-gradient(180deg, #FF6A3D 0%, #FF4500 100%);
+    }
+    .x-icon-bg {
+      background: linear-gradient(180deg, #27272A 0%, #09090B 100%);
+    }
+    .youtube-icon-bg {
+      background: linear-gradient(180deg, #FF3B30 0%, #D70015 100%);
+    }
+
+    /* Smooth Scrollbars */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Equalizer Animation */
+    @keyframes eqPulse {
+      0%, 100% { transform: scaleY(0.28); }
+      50% { transform: scaleY(1); }
+    }
+    .eq-bar {
+      transform-origin: bottom;
+      animation: eqPulse 0.75s ease-in-out infinite;
+    }
+    .eq-bar:nth-child(2) { animation-delay: 0.2s; }
+    .eq-bar:nth-child(3) { animation-delay: 0.4s; }
+    .eq-bar:nth-child(4) { animation-delay: 0.15s; }
+
+    /* Apple Range Slider */
+    input[type="range"].am-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(255, 255, 255, 0.2);
+      height: 5px;
+      border-radius: 999px;
+      outline: none;
+    }
+    input[type="range"].am-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #ffffff;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Sheet Transitions */
+    .sheet-enter {
+      animation: slideUp 0.34s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0.6; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div id="ios-shell" class="ios-wallpaper flex flex-col">
+
+    <!-- iOS Status Bar + Dynamic Island -->
+    <header class="relative z-40 px-6 pt-3 pb-2 flex items-center justify-between text-xs font-semibold tracking-tight shrink-0">
+      <span id="ios-clock" class="w-14 text-[13px] font-bold">9:41</span>
+
+      <!-- Dynamic Island -->
+      <button onclick="handleDynamicIslandTap()" id="dynamic-island" class="h-[30px] min-w-[116px] max-w-[190px] px-3 rounded-full bg-black border border-white/10 flex items-center justify-between gap-2 shadow-lg transition-all active:scale-95">
+        <div id="di-idle" class="flex items-center justify-between w-full">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-[10px] text-white/70 font-medium">HubOS 26</span>
+          <span class="w-2.5 h-2.5 rounded-full bg-zinc-800 border border-white/15"></span>
+        </div>
+        <div id="di-playing" class="hidden items-center justify-between w-full gap-2">
+          <img id="di-art" src="" alt="" class="w-5 h-5 rounded-md object-cover shrink-0" />
+          <span id="di-title" class="text-[10px] font-semibold text-white truncate">Playing</span>
+          <div class="flex items-end gap-[2px] h-3 shrink-0">
+            <span class="w-[2px] h-full bg-[#FA243C] eq-bar"></span>
+            <span class="w-[2px] h-full bg-[#FA243C] eq-bar"></span>
+            <span class="w-[2px] h-full bg-[#FA243C] eq-bar"></span>
+          </div>
+        </div>
+      </button>
+
+      <div class="w-14 flex items-center justify-end gap-1.5 text-white/90">
+        <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+        <div class="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-400/20 border border-amber-400/40 text-amber-300 text-[10px] font-bold">
+          <span>86%</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main App Viewport -->
+    <main id="app-viewport" class="flex-1 overflow-y-auto no-scrollbar relative pb-32">
+      <!-- Dynamic Content Rendered Here -->
+    </main>
+
+    <!-- Persistent Apple Music Mini-Player -->
+    <div id="mini-player" onclick="openNowPlayingModal()" class="hidden fixed sm:absolute left-3 right-3 bottom-[78px] z-30 liquid-glass rounded-2xl px-3 py-2 flex items-center justify-between gap-3 shadow-2xl cursor-pointer active:scale-[0.98] transition-transform">
+      <div class="flex items-center gap-2.5 min-w-0 flex-1">
+        <img id="mp-art" src="https://images.unsplash.com/photo-1614613535768-5e77f11dbd9d?w=200&q=80" alt="Cover" class="w-10 h-10 rounded-xl object-cover shadow-md shrink-0" />
+        <div class="min-w-0 flex-1">
+          <p id="mp-title" class="text-[13px] font-semibold text-white truncate">Select a Song</p>
+          <p id="mp-artist" class="text-[11px] text-white/60 truncate">Apple Music · Ad-Free</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-1 shrink-0" onclick="event.stopPropagation()">
+        <button onclick="togglePlayPause()" class="w-9 h-9 rounded-full flex items-center justify-center text-white hover:bg-white/10 active:scale-90">
+          <i id="mp-play-icon" data-lucide="play" class="w-5 h-5 fill-white"></i>
+        </button>
+        <button onclick="playNextTrack()" class="w-9 h-9 rounded-full flex items-center justify-center text-white hover:bg-white/10 active:scale-90">
+          <i data-lucide="skip-forward" class="w-5 h-5 fill-white"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom iOS Liquid Glass App Switcher Dock -->
+    <nav class="fixed sm:absolute bottom-2.5 left-3 right-3 z-30 liquid-glass-heavy rounded-[28px] px-2 py-1.5 flex items-center justify-around border border-white/15 shadow-2xl">
+      <button onclick="switchApp('home')" data-nav="home" class="nav-btn flex flex-col items-center justify-center py-1 px-2.5 rounded-2xl transition-all text-white">
+        <i data-lucide="layout-grid" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium mt-0.5">Home</span>
+      </button>
+      <button onclick="switchApp('reddit')" data-nav="reddit" class="nav-btn flex flex-col items-center justify-center py-1 px-2.5 rounded-2xl transition-all text-white/55">
+        <i data-lucide="flame" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium mt-0.5">Reddit</span>
+      </button>
+      <button onclick="switchApp('x')" data-nav="x" class="nav-btn flex flex-col items-center justify-center py-1 px-2.5 rounded-2xl transition-all text-white/55">
+        <span class="text-[17px] font-black leading-5">𝕏</span>
+        <span class="text-[10px] font-medium mt-0.5">X</span>
+      </button>
+      <button onclick="switchApp('music')" data-nav="music" class="nav-btn flex flex-col items-center justify-center py-1 px-2.5 rounded-2xl transition-all text-white/55">
+        <i data-lucide="music" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium mt-0.5">Music</span>
+      </button>
+      <button onclick="switchApp('youtube')" data-nav="youtube" class="nav-btn flex flex-col items-center justify-center py-1 px-2.5 rounded-2xl transition-all text-white/55">
+        <i data-lucide="play-square" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium mt-0.5">YouTube</span>
+      </button>
+    </nav>
+
+    <!-- Full-Screen Apple Music Now Playing Sheet -->
+    <div id="now-playing-modal" class="hidden fixed sm:absolute inset-0 z-50 bg-black/95 backdrop-blur-3xl flex flex-col justify-between px-6 pt-12 pb-8 sheet-enter">
+      <!-- Top Grabber & Header -->
+      <div>
+        <div class="w-10 h-1.5 rounded-full bg-white/25 mx-auto mb-5 cursor-pointer" onclick="closeNowPlayingModal()"></div>
+        <div class="flex items-center justify-between">
+          <button onclick="closeNowPlayingModal()" class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
+            <i data-lucide="chevron-down" class="w-5 h-5"></i>
+          </button>
+          <div class="text-center">
+            <span class="text-[10px] uppercase tracking-widest text-white/50 font-bold">Playing From</span>
+            <p id="np-source" class="text-xs font-semibold text-white">Apple Music · Ad-Free</p>
+          </div>
+          <button onclick="toggleNowPlayingLyrics()" id="np-lyrics-btn" class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white/80">
+            <i data-lucide="mic-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Album Art OR Apple Music Sing Lyrics -->
+      <div id="np-artwork-view" class="my-auto flex flex-col items-center">
+        <div class="w-64 h-64 sm:w-72 sm:h-72 rounded-[28px] overflow-hidden shadow-[0_24px_60px_rgba(250,36,60,0.3)] border border-white/15">
+          <img id="np-art" src="https://images.unsplash.com/photo-1614613535768-5e77f11dbd9d?w=600&q=85" alt="Album Art" class="w-full h-full object-cover" />
+        </div>
+      </div>
+
+      <div id="np-lyrics-view" class="hidden my-auto h-64 overflow-y-auto no-scrollbar rounded-3xl bg-white/5 border border-white/10 p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-[#FA243C]">Apple Music Sing</span>
+          <span class="text-[11px] text-white/50">Synced Lyrics</span>
+        </div>
+        <div id="np-lyrics-content" class="space-y-3 text-lg font-bold leading-snug text-white/85">
+          <p class="text-white">♪ Instrumental Intro...</p>
+          <p class="text-white/50">Tap any track from global search or your imported Demus playlist to stream ad-free.</p>
+        </div>
+      </div>
+
+      <!-- Track Info + Scrubber + Transport + AirPlay -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between gap-3">
+          <div class="min-w-0 flex-1">
+            <h2 id="np-title" class="text-xl font-bold text-white truncate">Not Playing</h2>
+            <p id="np-artist" class="text-sm text-white/60 truncate">Select a track to begin</p>
+          </div>
+          <button onclick="toggleFavoriteCurrent()" class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-[#FA243C]">
+            <i id="np-fav-icon" data-lucide="star" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Lossless / Dolby Badge -->
+        <div class="flex items-center justify-center">
+          <span class="px-2.5 py-0.5 rounded-md bg-white/10 text-[10px] font-bold tracking-wider text-white/75 flex items-center gap-1.5">
+            <i data-lucide="waves" class="w-3 h-3 text-[#FA243C]"></i> LOSSLESS · AD-FREE STREAM
+          </span>
+        </div>
+
+        <!-- Progress Scrubber -->
+        <div class="space-y-1.5">
+          <input id="np-progress" type="range" min="0" max="100" value="0" oninput="seekAudio(this.value)" class="w-full am-slider" />
+          <div class="flex justify-between text-[11px] font-medium text-white/50">
+            <span id="np-current-time">0:00</span>
+            <span id="np-duration">0:30</span>
+          </div>
+        </div>
+
+        <!-- Playback Controls -->
+        <div class="flex items-center justify-around py-1">
+          <button onclick="toggleShuffle()" id="np-shuffle-btn" class="p-2 text-white/50 hover:text-white">
+            <i data-lucide="shuffle" class="w-5 h-5"></i>
+          </button>
+          <button onclick="playPrevTrack()" class="p-2 text-white active:scale-90">
+            <i data-lucide="rewind" class="w-8 h-8 fill-white"></i>
+          </button>
+          <button onclick="togglePlayPause()" class="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center shadow-xl active:scale-90">
+            <i id="np-play-icon" data-lucide="play" class="w-8 h-8 fill-black ml-0.5"></i>
+          </button>
+          <button onclick="playNextTrack()" class="p-2 text-white active:scale-90">
+            <i data-lucide="fast-forward" class="w-8 h-8 fill-white"></i>
+          </button>
+          <button onclick="toggleRepeat()" id="np-repeat-btn" class="p-2 text-white/50 hover:text-white">
+            <i data-lucide="repeat" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- Output Device Selector -->
+        <div class="flex items-center justify-between pt-1">
+          <button onclick="cycleAudioOutput()" class="mx-auto px-3.5 py-1.5 rounded-full bg-white/10 border border-white/10 flex items-center gap-2 text-xs font-semibold text-[#FA586A]">
+            <i data-lucide="headphones" class="w-3.5 h-3.5"></i>
+            <span id="audio-output-label">AirPods Pro 2 · Spatial Audio</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accounts & Login Modal (Google ID for Reddit/YouTube, Mobile + OTP for X) -->
+    <div id="accounts-modal" class="hidden fixed sm:absolute inset-0 z-50 bg-black/92 backdrop-blur-2xl flex flex-col justify-between px-5 pt-12 pb-8 overflow-y-auto no-scrollbar sheet-enter">
+      <div class="space-y-5">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold tracking-tight">Connected Accounts</h2>
+            <p class="text-xs text-white/55">Stored locally in IndexedDB · Zero tracking</p>
+          </div>
+          <button onclick="closeAccountsModal()" class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- Unified Google ID Card (Reddit + YouTube) -->
+        <div class="rounded-3xl bg-[#1C1C1E] border border-white/10 p-4 space-y-3.5">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-white text-black font-black flex items-center justify-center text-lg shadow">G</div>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-sm font-bold">Google Account (Reddit & YouTube)</h3>
+              <p id="google-status-text" class="text-xs text-white/55 truncate">Sign in once with your Google ID</p>
+            </div>
+          </div>
+
+          <div id="google-login-form" class="space-y-2.5">
+            <input id="google-email-input" type="email" placeholder="yourname@gmail.com" class="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-sm text-white placeholder-white/35 focus:outline-none focus:border-sky-400" />
+            <details class="text-[11px] text-white/50">
+              <summary class="cursor-pointer hover:text-white/80">Optional: Google OAuth 2.0 Client ID (Live YouTube API)</summary>
+              <input id="google-client-id-input" type="text" placeholder="1234567890-xxxx.apps.googleusercontent.com" class="mt-2 w-full px-3 py-2 rounded-xl bg-black/60 border border-white/15 text-xs text-white placeholder-white/30" />
+            </details>
+            <button onclick="signInWithGoogle()" class="w-full py-2.5 rounded-xl bg-white text-black font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98]">
+              <span>Continue with Google</span>
+            </button>
+          </div>
+
+          <div id="google-connected-box" class="hidden space-y-2.5">
+            <div class="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
+              <div>
+                <p id="google-connected-email" class="text-xs font-bold text-emerald-300"></p>
+                <p class="text-[11px] text-white/60">Active on Reddit & YouTube</p>
+              </div>
+              <button onclick="disconnectGoogle()" class="px-3 py-1 rounded-lg bg-white/10 text-xs font-semibold text-rose-300">Sign Out</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Number + OTP Card for X -->
+        <div class="rounded-3xl bg-[#1C1C1E] border border-white/10 p-4 space-y-3.5">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-black border border-white/15 text-white font-black flex items-center justify-center text-lg">𝕏</div>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-sm font-bold">X Mobile Number Login</h3>
+              <p id="x-status-text" class="text-xs text-white/55 truncate">Verify mobile number with OTP</p>
+            </div>
+          </div>
+
+          <div id="x-login-form" class="space-y-2.5">
+            <div class="flex gap-2">
+              <input id="x-country-code" type="text" value="+91" class="w-16 px-2.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-sm font-bold text-center text-white" />
+              <input id="x-phone-input" type="tel" placeholder="98765 43210" class="flex-1 px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-sm text-white placeholder-white/35 focus:outline-none focus:border-white" />
+            </div>
+            <input id="x-handle-input" type="text" placeholder="Your X @handle (optional)" class="w-full px-3.5 py-2 rounded-xl bg-black/60 border border-white/15 text-xs text-white placeholder-white/35" />
+
+            <div id="x-otp-step" class="hidden space-y-2 pt-1">
+              <div class="flex items-center justify-between text-[11px] text-sky-400">
+                <span>6-Digit OTP sent to mobile</span>
+                <button type="button" onclick="autofillDemoOtp()" class="underline font-semibold">Auto-fill Demo OTP</button>
+              </div>
+              <input id="x-otp-input" type="text" maxlength="6" placeholder="• • • • • •" class="w-full px-3.5 py-2.5 rounded-xl bg-black/80 border border-sky-400/50 text-center tracking-[0.45em] font-bold text-base text-white" />
+              <button onclick="verifyXMobileOtp()" class="w-full py-2.5 rounded-xl bg-sky-500 text-black font-bold text-sm active:scale-[0.98]">
+                Verify OTP & Sign In to X
+              </button>
+            </div>
+
+            <button id="x-send-otp-btn" onclick="sendXMobileOtp()" class="w-full py-2.5 rounded-xl bg-white/15 hover:bg-white/20 text-white font-bold text-sm active:scale-[0.98]">
+              Send 6-Digit OTP
+            </button>
+          </div>
+
+          <div id="x-connected-box" class="hidden">
+            <div class="p-3 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-between">
+              <div>
+                <p id="x-connected-phone" class="text-xs font-bold text-sky-300"></p>
+                <p id="x-connected-handle" class="text-[11px] text-white/60"></p>
+              </div>
+              <button onclick="disconnectX()" class="px-3 py-1 rounded-lg bg-white/10 text-xs font-semibold text-rose-300">Sign Out</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="closeAccountsModal()" class="mt-6 w-full py-3 rounded-2xl bg-white/10 text-sm font-semibold text-white">Done</button>
+    </div>
+
+    <!-- Hidden File Input for Demus .playlist & Local Audio -->
+    <input type="file" id="demus-file-input" accept=".playlist,.zip,.json,.m3u,.m3u8,.txt,audio/*" multiple class="hidden" onchange="handlePlaylistImport(event)" />
+
+    <!-- Toast Banner -->
+    <div id="toast-banner" class="hidden fixed sm:absolute top-12 left-4 right-4 z-50 liquid-glass rounded-2xl px-4 py-2.5 text-xs font-semibold text-white shadow-2xl flex items-center justify-between">
+      <span id="toast-text">Notification</span>
+    </div>
+
+    <!-- Hidden HTML5 Audio Engine -->
+    <audio id="audio-engine" crossorigin="anonymous"></audio>
+  </div>
+
+  <script>
+    // =========================================================
+    // 1. INDEXEDDB PERSISTENCE LAYER (Zero localStorage)
+    // =========================================================
+    const DB_NAME = 'HubOS26_DB';
+    const DB_VERSION = 1;
+    let dbInstance = null;
+
+    function openHubDB() {
+      return new Promise((resolve, reject) => {
+        if (dbInstance) return resolve(dbInstance);
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('kv')) {
+            db.createObjectStore('kv');
+          }
+        };
+        req.onsuccess = (e) => {
+          dbInstance = e.target.result;
+          resolve(dbInstance);
+        };
+        req.onerror = (e) => reject(e.target.error);
+      });
+    }
+
+    async function dbGet(key, fallback) {
+      try {
+        const db = await openHubDB();
+        return new Promise((resolve) => {
+          const tx = db.transaction('kv', 'readonly');
+          const store = tx.objectStore('kv');
+          const req = store.get(key);
+          req.onsuccess = () => resolve(req.result !== undefined ? req.result : fallback);
+          req.onerror = () => resolve(fallback);
+        });
+      } catch {
+        return fallback;
+      }
+    }
+
+    async function dbSet(key, val) {
+      try {
+        const db = await openHubDB();
+        return new Promise((resolve) => {
+          const tx = db.transaction('kv', 'readwrite');
+          tx.objectStore('kv').put(val, key);
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = () => resolve(false);
+        });
+      } catch {
+        return false;
+      }
+    }
+
+    // =========================================================
+    // 2. APPLICATION STATE
+    // =========================================================
+    const state = {
+      activeApp: 'home',
+      accounts: {
+        googleEmail: '',
+        googleClientId: '',
+        googleToken: '',
+        xPhone: '',
+        xHandle: ''
+      },
+      pendingOtp: '',
+      // Reddit State
+      reddit: {
+        subreddits: ['Chennai', 'developersIndia', 'IndianStreetBets', 'indieheadsmusic', 'swift'],
+        activeSub: 'Chennai',
+        sort: 'hot',
+        posts: [],
+        loading: false,
+        savedPosts: []
+      },
+      // X State
+      x: {
+        tab: 'foryou',
+        handles: ['elonmusk', 'anirudhofficial', 'arrahman', 'FabrizioRomano', 'levelsio'],
+        posts: [],
+        likedIds: [],
+        repostedIds: [],
+        bookmarkedIds: []
+      },
+      // Apple Music State
+      music: {
+        tab: 'home', // home | new | radio | library | search
+        searchQuery: '',
+        searchResults: [],
+        searching: false,
+        playlists: [],
+        favorites: [],
+        queue: [],
+        currentIndex: -1,
+        isPlaying: false,
+        shuffle: false,
+        repeat: false,
+        outputIndex: 0,
+        outputs: [
+          'AirPods Pro 2 · Spatial Audio',
+          'FiiO JD1 · Lossless DAC',
+          'iPhone 16 Speakers'
+        ]
+      },
+      // YouTube State
+      youtube: {
+        mode: 'videos', // videos | shorts
+        query: 'Anirudh Ravichander Live Concert 4K',
+        videos: [
+          { id: 'v_j1', title: 'Hukum - Jailer Official Lyric Video | Superstar Rajinikanth | Anirudh', channel: 'Sun TV', views: '148M views', duration: '3:27', thumb: 'https://i.ytimg.com/vi/1F3hm6MfR1k/hqdefault.jpg', ytId: '1F3hm6MfR1k' },
+          { id: 'v_j2', title: 'Chuttamalle - Devara | NTR | Janhvi Kapoor | Anirudh Ravichander', channel: 'T-Series Telugu', views: '210M views', duration: '3:42', thumb: 'https://i.ytimg.com/vi/GWNrPJyRTcA/hqdefault.jpg', ytId: 'GWNrPJyRTcA' },
+          { id: 'v_j3', title: 'Java Spring Boot Microservices Full Architecture Deep Dive', channel: 'Java Brains', views: '640K views', duration: '42:18', thumb: 'https://i.ytimg.com/vi/y8IQb4ofjDo/hqdefault.jpg', ytId: 'y8IQb4ofjDo' },
+          { id: 'v_j4', title: 'Red Bull Racing F1 RB20 Onboard Lap Telemetry Breakdown', channel: 'FORMULA 1', views: '3.2M views', duration: '8:14', thumb: 'https://i.ytimg.com/vi/3tmd-ClpJxA/hqdefault.jpg', ytId: '3tmd-ClpJxA' }
+        ],
+        activeVideoId: '1F3hm6MfR1k',
+        activeTitle: 'Hukum - Jailer Official Lyric Video | Superstar Rajinikanth | Anirudh',
+        audioOnly: false
+      }
+    };
+
+    const STARTER_TRACKS = [
+      {
+        id: 'am_1',
+        title: 'Hukum - Thalaivar Alappara',
+        artist: 'Anirudh Ravichander',
+        album: 'Jailer (Original Motion Picture Soundtrack)',
+        art: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/4e/6c/8a/4e6c8a8c-1f2a-4c3b-9d8e-2b5a4f7c8d9e/cover.jpg/600x600bb.jpg',
+        fallbackArt: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80',
+        searchTerm: 'Hukum Anirudh Ravichander'
+      },
+      {
+        id: 'am_2',
+        title: 'Starboy (feat. Daft Punk)',
+        artist: 'The Weeknd',
+        album: 'Starboy',
+        art: 'https://images.unsplash.com/photo-1614613535768-5e77f11dbd9d?w=500&q=80',
+        searchTerm: 'Starboy The Weeknd'
+      },
+      {
+        id: 'am_3',
+        title: 'Naa Ready (From "Leo")',
+        artist: 'Anirudh Ravichander, Thalapathy Vijay',
+        album: 'Leo (Original Motion Picture Soundtrack)',
+        art: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80',
+        searchTerm: 'Naa Ready Anirudh Vijay'
+      },
+      {
+        id: 'am_4',
+        title: 'Blinding Lights',
+        artist: 'The Weeknd',
+        album: 'After Hours',
+        art: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&q=80',
+        searchTerm: 'Blinding Lights The Weeknd'
+      },
+      {
+        id: 'am_5',
+        title: 'Munbe Vaa',
+        artist: 'A.R. Rahman, Shreya Ghoshal, Naresh Iyer',
+        album: 'Sillunu Oru Kaadhal',
+        art: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&q=80',
+        searchTerm: 'Munbe Vaa AR Rahman'
+      },
+      {
+        id: 'am_6',
+        title: 'FE!N (feat. Playboi Carti)',
+        artist: 'Travis Scott',
+        album: 'UTOPIA',
+        art: 'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?w=500&q=80',
+        searchTerm: 'FEIN Travis Scott'
+      }
+    ];
+
+    const audio = document.getElementById('audio-engine');
+
+    // =========================================================
+    // 3. INITIALIZATION & CLOCK
+    // =========================================================
+    async function initHubOS() {
+      updateClock();
+      setInterval(updateClock, 15000);
+
+      // Load saved state from IndexedDB
+      const savedAccounts = await dbGet('accounts', null);
+      if (savedAccounts) state.accounts = { ...state.accounts, ...savedAccounts };
+
+      const savedSubs = await dbGet('reddit_subs', null);
+      if (savedSubs && savedSubs.length) state.reddit.subreddits = savedSubs;
+      state.reddit.savedPosts = await dbGet('reddit_saved', []);
+
+      const savedHandles = await dbGet('x_handles', null);
+      if (savedHandles && savedHandles.length) state.x.handles = savedHandles;
+      state.x.likedIds = await dbGet('x_likes', []);
+      state.x.repostedIds = await dbGet('x_reposts', []);
+      state.x.bookmarkedIds = await dbGet('x_bookmarks', []);
+
+      const savedPlaylists = await dbGet('music_playlists', null);
+      if (savedPlaylists && savedPlaylists.length) {
+        state.music.playlists = savedPlaylists;
+      } else {
+        state.music.playlists = [
+          {
+            id: 'pl_gym_starter',
+            name: 'Heavy Lifting & PRs',
+            source: 'Apple Music',
+            cover: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=500&q=80',
+            tracks: [...STARTER_TRACKS]
+          }
+        ];
+      }
+      state.music.favorites = await dbGet('music_favorites', []);
+      state.music.queue = [...STARTER_TRACKS];
+
+      syncAccountModalUI();
+      seedXFeed();
+      renderCurrentApp();
+      setupAudioEvents();
+      lucide.createIcons();
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const hrs = now.getHours();
+      const mins = String(now.getMinutes()).padStart(2, '0');
+      const displayHr = hrs % 12 || 12;
+      const el = document.getElementById('ios-clock');
+      if (el) el.textContent = `${displayHr}:${mins}`;
+    }
+
+    function showToast(msg) {
+      const banner = document.getElementById('toast-banner');
+      const text = document.getElementById('toast-text');
+      text.textContent = msg;
+      banner.classList.remove('hidden');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        banner.classList.add('hidden');
+      }, 2800);
+    }
+
+    // =========================================================
+    // 4. NAVIGATION & HOME SCREEN LAUNCHER
+    // =========================================================
+    function switchApp(appName) {
+      state.activeApp = appName;
+      document.querySelectorAll('.nav-btn').forEach((btn) => {
+        const isTarget = btn.getAttribute('data-nav') === appName;
+        btn.classList.toggle('text-white', isTarget);
+        btn.classList.toggle('bg-white/10', isTarget);
+        btn.classList.toggle('text-white/55', !isTarget);
+      });
+
+      if (appName === 'reddit' && state.reddit.posts.length === 0) {
+        fetchRedditPosts(state.reddit.activeSub);
+      }
+      renderCurrentApp();
+    }
+
+    function renderCurrentApp() {
+      const vp = document.getElementById('app-viewport');
+      if (state.activeApp === 'home') {
+        vp.innerHTML = renderHomeScreen();
+      } else if (state.activeApp === 'reddit') {
+        vp.innerHTML = renderRedditApp();
+      } else if (state.activeApp === 'x') {
+        vp.innerHTML = renderXApp();
+      } else if (state.activeApp === 'music') {
+        vp.innerHTML = renderAppleMusicApp();
+      } else if (state.activeApp === 'youtube') {
+        vp.innerHTML = renderYouTubeApp();
+      }
+      lucide.createIcons();
+    }
+
+    function renderHomeScreen() {
+      const isGoogleConnected = Boolean(state.accounts.googleEmail);
+      const isXConnected = Boolean(state.accounts.xPhone);
+      const totalImportedSongs = state.music.playlists.reduce((acc, p) => acc + p.tracks.length, 0);
+
+      return `
+        <div class="px-5 pt-3 pb-8 space-y-6">
+          <!-- Top Greeting & Unified Account Pill -->
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-[11px] font-semibold uppercase tracking-widest text-white/50">iOS 26 · Ad-Free Suite</p>
+              <h1 class="text-2xl font-extrabold tracking-tight text-white">HubOS</h1>
+            </div>
+            <button onclick="openAccountsModal()" class="liquid-glass px-3.5 py-2 rounded-full flex items-center gap-2 text-xs font-semibold active:scale-95">
+              <span class="w-2 h-2 rounded-full ${isGoogleConnected || isXConnected ? 'bg-emerald-400' : 'bg-amber-400'}"></span>
+              <span>${isGoogleConnected ? state.accounts.googleEmail.split('@')[0] : 'Accounts'}</span>
+              <i data-lucide="user-check" class="w-3.5 h-3.5 text-white/75"></i>
+            </button>
+          </div>
+
+          <!-- iOS 26 Liquid Glass Status Widget -->
+          <div class="liquid-glass rounded-[28px] p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">SHIELD ACTIVE</span>
+                <span class="text-xs text-white/65">0 Promoted Posts · 0 Video Ads</span>
+              </div>
+              <button onclick="triggerDemusImport()" class="text-[11px] font-bold text-[#FA586A] hover:underline">+ Demus Import</button>
+            </div>
+            <div class="grid grid-cols-3 gap-2 pt-1">
+              <div class="rounded-2xl bg-white/5 p-2.5">
+                <p class="text-[10px] text-white/50">Google ID</p>
+                <p class="text-xs font-bold truncate mt-0.5">${isGoogleConnected ? 'Linked' : 'Tap to Link'}</p>
+              </div>
+              <div class="rounded-2xl bg-white/5 p-2.5">
+                <p class="text-[10px] text-white/50">X Mobile</p>
+                <p class="text-xs font-bold truncate mt-0.5">${isXConnected ? state.accounts.xPhone : 'Tap to Link'}</p>
+              </div>
+              <div class="rounded-2xl bg-white/5 p-2.5">
+                <p class="text-[10px] text-white/50">Library</p>
+                <p class="text-xs font-bold truncate mt-0.5">${totalImportedSongs} Tracks</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2x2 iOS App Launcher Grid -->
+          <div>
+            <p class="text-xs font-semibold text-white/50 mb-3 px-1">Select App</p>
+            <div class="grid grid-cols-2 gap-4">
+              <!-- 1. Reddit -->
+              <button onclick="switchApp('reddit')" class="liquid-glass rounded-[30px] p-4 flex flex-col items-center text-center gap-3 active:scale-95 transition-transform">
+                <div class="w-16 h-16 squircle reddit-icon-bg flex items-center justify-center">
+                  <i data-lucide="flame" class="w-9 h-9 text-white fill-white"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-bold text-white">Reddit</p>
+                  <p class="text-[11px] text-white/55">${isGoogleConnected ? 'Google Signed In' : 'Ad-Free Feed'}</p>
+                </div>
+              </button>
+
+              <!-- 2. X -->
+              <button onclick="switchApp('x')" class="liquid-glass rounded-[30px] p-4 flex flex-col items-center text-center gap-3 active:scale-95 transition-transform">
+                <div class="w-16 h-16 squircle x-icon-bg border border-white/15 flex items-center justify-center">
+                  <span class="text-3xl font-black text-white">𝕏</span>
+                </div>
+                <div>
+                  <p class="text-sm font-bold text-white">X</p>
+                  <p class="text-[11px] text-white/55">${isXConnected ? state.accounts.xPhone : 'Mobile OTP Ready'}</p>
+                </div>
+              </button>
+
+              <!-- 3. Apple Music Authentic Icon -->
+              <button onclick="switchApp('music')" class="liquid-glass rounded-[30px] p-4 flex flex-col items-center text-center gap-3 active:scale-95 transition-transform">
+                <div class="w-16 h-16 squircle apple-music-icon-bg flex items-center justify-center">
+                  <svg class="w-9 h-9 text-white" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.5 3.2L9.2 5.3c-.6.1-1 .7-1 1.3v9.7c-.6-.3-1.3-.4-2-.3-1.8.2-3.2 1.6-3.2 3.3 0 1.8 1.5 3.1 3.4 2.9 1.7-.2 3.1-1.6 3.1-3.3V9.5l9-1.9v6.7c-.6-.3-1.3-.4-2-.3-1.8.2-3.2 1.6-3.2 3.3 0 1.8 1.5 3.1 3.4 2.9 1.7-.2 3.1-1.6 3.1-3.3V4.3c0-.7-.6-1.2-1.3-1.1z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm font-bold text-white">Music</p>
+                  <p class="text-[11px] text-[#FA586A] font-medium">Apple Music UI</p>
+                </div>
+              </button>
+
+              <!-- 4. YouTube -->
+              <button onclick="switchApp('youtube')" class="liquid-glass rounded-[30px] p-4 flex flex-col items-center text-center gap-3 active:scale-95 transition-transform">
+                <div class="w-16 h-16 squircle youtube-icon-bg flex items-center justify-center">
+                  <i data-lucide="play" class="w-8 h-8 text-white fill-white ml-0.5"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-bold text-white">YouTube</p>
+                  <p class="text-[11px] text-white/55">${isGoogleConnected ? 'Google Synced' : 'No-Ads + Shorts'}</p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="liquid-glass rounded-3xl p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-[#FA243C]/20 text-[#FA243C] flex items-center justify-center">
+                <i data-lucide="folder-plus" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-white">Import Demus Playlist</p>
+                <p class="text-[11px] text-white/55">Supports .playlist, .zip, .m3u & .json</p>
+              </div>
+            </div>
+            <button onclick="triggerDemusImport()" class="px-3.5 py-2 rounded-xl bg-[#FA243C] text-white text-xs font-bold active:scale-95">
+              Import
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // =========================================================
+    // 5. ACCOUNTS & CREDENTIALS HUB (Google ID & X Mobile OTP)
+    // =========================================================
+    function openAccountsModal() {
+      syncAccountModalUI();
+      document.getElementById('accounts-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeAccountsModal() {
+      document.getElementById('accounts-modal').classList.add('hidden');
+      renderCurrentApp();
+    }
+
+    function syncAccountModalUI() {
+      const gEmail = state.accounts.googleEmail;
+      const gForm = document.getElementById('google-login-form');
+      const gBox = document.getElementById('google-connected-box');
+      const gStatus = document.getElementById('google-status-text');
+
+      if (gEmail) {
+        gForm.classList.add('hidden');
+        gBox.classList.remove('hidden');
+        document.getElementById('google-connected-email').textContent = gEmail;
+        gStatus.textContent = 'Connected to Reddit & YouTube';
+      } else {
+        gForm.classList.remove('hidden');
+        gBox.classList.add('hidden');
+        gStatus.textContent = 'Sign in once with your Google ID';
+      }
+
+      const xPhone = state.accounts.xPhone;
+      const xForm = document.getElementById('x-login-form');
+      const xBox = document.getElementById('x-connected-box');
+      const xStatus = document.getElementById('x-status-text');
+
+      if (xPhone) {
+        xForm.classList.add('hidden');
+        xBox.classList.remove('hidden');
+        document.getElementById('x-connected-phone').textContent = xPhone;
+        document.getElementById('x-connected-handle').textContent = state.accounts.xHandle || 'Verified Mobile Session';
+        xStatus.textContent = 'Verified via Mobile OTP';
+      } else {
+        xForm.classList.remove('hidden');
+        xBox.classList.add('hidden');
+        xStatus.textContent = 'Verify mobile number with OTP';
+      }
+    }
+
+    async function signInWithGoogle() {
+      const emailInput = document.getElementById('google-email-input').value.trim();
+      const clientIdInput = document.getElementById('google-client-id-input').value.trim();
+
+      if (!emailInput || !emailInput.includes('@')) {
+        showToast('Enter a valid Google email address');
+        return;
+      }
+
+      // If user supplied a real Google OAuth Client ID, launch Google Identity Services popup
+      if (clientIdInput && window.google && window.google.accounts && window.google.accounts.oauth2) {
+        try {
+          const client = window.google.accounts.oauth2.initTokenClient({
+            client_id: clientIdInput,
+            scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/youtube.readonly',
+            callback: async (tokenResponse) => {
+              if (tokenResponse && tokenResponse.access_token) {
+                state.accounts.googleEmail = emailInput;
+                state.accounts.googleClientId = clientIdInput;
+                state.accounts.googleToken = tokenResponse.access_token;
+                await dbSet('accounts', state.accounts);
+                syncAccountModalUI();
+                showToast(`Google OAuth linked: ${emailInput}`);
+              }
+            }
+          });
+          client.requestAccessToken();
+          return;
+        } catch (err) {
+          console.warn('OAuth popup fallback to local Google session:', err);
+        }
+      }
+
+      state.accounts.googleEmail = emailInput;
+      state.accounts.googleClientId = clientIdInput;
+      await dbSet('accounts', state.accounts);
+      syncAccountModalUI();
+      showToast(`Signed into Reddit & YouTube as ${emailInput}`);
+    }
+
+    async function disconnectGoogle() {
+      state.accounts.googleEmail = '';
+      state.accounts.googleToken = '';
+      await dbSet('accounts', state.accounts);
+      syncAccountModalUI();
+      showToast('Google account disconnected');
+    }
+
+    function sendXMobileOtp() {
+      const cc = document.getElementById('x-country-code').value.trim() || '+91';
+      const phone = document.getElementById('x-phone-input').value.replace(/\s+/g, '').trim();
+      if (phone.length < 7) {
+        showToast('Enter a valid mobile number');
+        return;
+      }
+      state.pendingOtp = String(Math.floor(100000 + Math.random() * 900000));
+      document.getElementById('x-otp-step').classList.remove('hidden');
+      document.getElementById('x-send-otp-btn').textContent = 'Resend OTP';
+      showToast(`OTP sent to ${cc} ${phone} (Demo: ${state.pendingOtp})`);
+    }
+
+    function autofillDemoOtp() {
+      if (!state.pendingOtp) state.pendingOtp = '482910';
+      document.getElementById('x-otp-input').value = state.pendingOtp;
+    }
+
+    async function verifyXMobileOtp() {
+      const entered = document.getElementById('x-otp-input').value.trim();
+      if (entered.length < 4) {
+        showToast('Enter the 6-digit OTP code');
+        return;
+      }
+      const cc = document.getElementById('x-country-code').value.trim() || '+91';
+      const phone = document.getElementById('x-phone-input').value.trim();
+      let handle = document.getElementById('x-handle-input').value.trim();
+      if (handle && !handle.startsWith('@')) handle = '@' + handle;
+
+      state.accounts.xPhone = `${cc} ${phone}`;
+      state.accounts.xHandle = handle || `@user_${phone.slice(-4)}`;
+      await dbSet('accounts', state.accounts);
+      syncAccountModalUI();
+      showToast(`X verified for ${state.accounts.xPhone}`);
+    }
+
+    async function disconnectX() {
+      state.accounts.xPhone = '';
+      state.accounts.xHandle = '';
+      await dbSet('accounts', state.accounts);
+      syncAccountModalUI();
+      showToast('X mobile session signed out');
+    }
+
+    // =========================================================
+    // 6. AD-FREE REDDIT MODULE
+    // =========================================================
+    async function fetchRedditPosts(subreddit) {
+      state.reddit.activeSub = subreddit;
+      state.reddit.loading = true;
+      renderCurrentApp();
+
+      try {
+        const url = `https://www.reddit.com/r/${encodeURIComponent(subreddit)}/${state.reddit.sort}.json?limit=18&raw_json=1`;
+        const res = await fetch(url);
+        const json = await res.json();
+        const children = (json && json.data && json.data.children) || [];
+
+        // Strip promoted/ad posts completely
+        state.reddit.posts = children
+          .map((c) => c.data)
+          .filter((p) => p && !p.promoted && !p.is_ad && !p.stickied)
+          .map((p) => ({
+            id: p.id,
+            title: p.title,
+            author: p.author,
+            sub: p.subreddit_name_prefixed,
+            score: p.ups,
+            comments: p.num_comments,
+            selftext: p.selftext ? p.selftext.slice(0, 220) : '',
+            thumb: p.url_overridden_by_dest && /\.(jpg|jpeg|png|webp)$/i.test(p.url_overridden_by_dest)
+              ? p.url_overridden_by_dest
+              : (p.thumbnail && p.thumbnail.startsWith('http') ? p.thumbnail : ''),
+            permalink: `https://www.reddit.com${p.permalink}`
+          }));
+      } catch {
+        state.reddit.posts = [
+          {
+            id: 'r_fallback_1',
+            title: 'Best late-night filter coffee & dinner spots along OMR Chennai?',
+            author: 'chennai_foodie',
+            sub: `r/${subreddit}`,
+            score: 342,
+            comments: 89,
+            selftext: 'Looking for clean, peaceful places open past 11 PM near Sholinganallur and Navalur.',
+            thumb: '',
+            permalink: 'https://www.reddit.com/r/Chennai'
+          },
+          {
+            id: 'r_fallback_2',
+            title: 'Spring Boot 3.4 + Virtual Threads benchmark in production microservices',
+            author: 'java_architect',
+            sub: `r/${subreddit}`,
+            score: 518,
+            comments: 112,
+            selftext: 'Memory footprint dropped by 38% after switching blocking JDBC pools to virtual threads.',
+            thumb: '',
+            permalink: 'https://www.reddit.com/r/developersIndia'
+          }
+        ];
+      }
+
+      state.reddit.loading = false;
+      if (state.activeApp === 'reddit') renderCurrentApp();
+    }
+
+    async function addSubreddit() {
+      const input = document.getElementById('new-sub-input');
+      const clean = (input.value || '').replace(/^r\//i, '').trim();
+      if (!clean) return;
+      if (!state.reddit.subreddits.includes(clean)) {
+        state.reddit.subreddits.unshift(clean);
+        await dbSet('reddit_subs', state.reddit.subreddits);
+      }
+      input.value = '';
+      fetchRedditPosts(clean);
+    }
+
+    async function toggleSaveRedditPost(postId) {
+      const idx = state.reddit.savedPosts.indexOf(postId);
+      if (idx >= 0) {
+        state.reddit.savedPosts.splice(idx, 1);
+        showToast('Removed from Saved');
+      } else {
+        state.reddit.savedPosts.push(postId);
+        showToast('Saved to Reddit Bookmarks');
+      }
+      await dbSet('reddit_saved', state.reddit.savedPosts);
+      renderCurrentApp();
+    }
+
+    function renderRedditApp() {
+      const gEmail = state.accounts.googleEmail;
+      return `
+        <div class="px-4 pt-2 pb-10 space-y-4">
+          <!-- Header -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl reddit-icon-bg flex items-center justify-center">
+                <i data-lucide="flame" class="w-5 h-5 text-white fill-white"></i>
+              </div>
+              <div>
+                <h1 class="text-lg font-extrabold leading-tight">Reddit</h1>
+                <p class="text-[11px] text-white/55">${gEmail ? gEmail : 'Ad-Free Reader · Tap to Sign In'}</p>
+              </div>
+            </div>
+            <button onclick="openAccountsModal()" class="px-3 py-1.5 rounded-full bg-white/10 text-xs font-semibold">
+              ${gEmail ? 'Google Linked' : 'Google Login'}
+            </button>
+          </div>
+
+          <!-- Add Subreddit Bar -->
+          <div class="flex gap-2">
+            <input id="new-sub-input" type="text" placeholder="Jump to r/subreddit..." onkeydown="if(event.key==='Enter') addSubreddit()" class="flex-1 px-3.5 py-2 rounded-xl bg-white/10 border border-white/10 text-xs text-white placeholder-white/40 focus:outline-none" />
+            <button onclick="addSubreddit()" class="px-3.5 py-2 rounded-xl bg-[#FF4500] text-white text-xs font-bold">Go</button>
+          </div>
+
+          <!-- Subreddit Pills -->
+          <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+            ${state.reddit.subreddits.map((sub) => `
+              <button onclick="fetchRedditPosts('${sub}')" class="px-3 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all ${state.reddit.activeSub === sub ? 'bg-[#FF4500] text-white' : 'bg-white/10 text-white/70'}">
+                r/${sub}
+              </button>
+            `).join('')}
+          </div>
+
+          <!-- Posts Feed -->
+          ${state.reddit.loading ? `
+            <div class="py-16 text-center text-xs text-white/50">Stripping ads & loading r/${state.reddit.activeSub}...</div>
+          ` : `
+            <div class="space-y-3">
+              ${state.reddit.posts.map((post) => {
+                const isSaved = state.reddit.savedPosts.includes(post.id);
+                return `
+                  <article class="rounded-2xl bg-[#1C1C1E] border border-white/10 p-3.5 space-y-2.5">
+                    <div class="flex items-center justify-between text-[11px] text-white/50">
+                      <span class="font-bold text-orange-400">${post.sub}</span>
+                      <span>u/${post.author}</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-white leading-snug">${post.title}</h3>
+                    ${post.selftext ? `<p class="text-xs text-white/65 leading-relaxed">${post.selftext}...</p>` : ''}
+                    ${post.thumb ? `<img src="${post.thumb}" alt="" class="w-full max-h-52 object-cover rounded-xl border border-white/10" loading="lazy" />` : ''}
+                    <div class="flex items-center justify-between pt-1 text-xs text-white/60">
+                      <div class="flex items-center gap-4">
+                        <span class="flex items-center gap-1 font-semibold text-orange-400"><i data-lucide="arrow-big-up" class="w-4 h-4"></i> ${post.score}</span>
+                        <span class="flex items-center gap-1"><i data-lucide="message-square" class="w-3.5 h-3.5"></i> ${post.comments}</span>
+                      </div>
+                      <div class="flex items-center gap-3">
+                        <button onclick="toggleSaveRedditPost('${post.id}')" class="${isSaved ? 'text-amber-400' : 'text-white/50'}">
+                          <i data-lucide="bookmark" class="w-4 h-4 ${isSaved ? 'fill-amber-400' : ''}"></i>
+                        </button>
+                        <a href="${post.permalink}" target="_blank" rel="noopener" class="text-white/50 hover:text-white">
+                          <i data-lucide="external-link" class="w-4 h-4"></i>
+                        </a>
+                      </div>
+                    </div>
+                  </article>
+                `;
+              }).join('')}
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    // =========================================================
+    // 7. AD-FREE X (TWITTER) MODULE
+    // =========================================================
+    function seedXFeed() {
+      state.x.posts = [
+        {
+          id: 'x_1',
+          name: 'Anirudh Ravichander',
+          handle: '@anirudhofficial',
+          verified: true,
+          time: '18m',
+          text: 'Mastering the final spatial mix tonight. Headphones on, volume all the way up. 🔥🎧',
+          likes: 18420,
+          reposts: 3120
+        },
+        {
+          id: 'x_2',
+          name: 'Fabrizio Romano',
+          handle: '@FabrizioRomano',
+          verified: true,
+          time: '42m',
+          text: 'Exclusive: Final documents signed and sealed ahead of the summer window. Here we go! 🚨⚽',
+          likes: 42900,
+          reposts: 6840
+        },
+        {
+          id: 'x_3',
+          name: 'Pieter Levels',
+          handle: '@levelsio',
+          verified: true,
+          time: '2h',
+          text: 'Fast web apps with zero bloat, zero trackers, and instant local state beat native wrappers every single time.',
+          likes: 5120,
+          reposts: 640
+        },
+        {
+          id: 'x_4',
+          name: 'A.R. Rahman',
+          handle: '@arrahman',
+          verified: true,
+          time: '4h',
+          text: 'Late night studio sessions in Chennai. New orchestral arrangements coming soon.',
+          likes: 29400,
+          reposts: 4100
+        }
+      ];
+    }
+
+    async function publishLocalXPost() {
+      const input = document.getElementById('x-compose-input');
+      const text = (input.value || '').trim();
+      if (!text) return;
+      state.x.posts.unshift({
+        id: 'x_' + Date.now(),
+        name: state.accounts.xPhone ? 'You' : 'HubOS User',
+        handle: state.accounts.xHandle || '@elango_dev',
+        verified: true,
+        time: 'Just now',
+        text,
+        likes: 1,
+        reposts: 0
+      });
+      input.value = '';
+      renderCurrentApp();
+      showToast('Posted to X timeline');
+    }
+
+    async function toggleXAction(type, id) {
+      const listKey = type === 'like' ? 'likedIds' : type === 'repost' ? 'repostedIds' : 'bookmarkedIds';
+      const dbKey = type === 'like' ? 'x_likes' : type === 'repost' ? 'x_reposts' : 'x_bookmarks';
+      const arr = state.x[listKey];
+      const idx = arr.indexOf(id);
+      if (idx >= 0) arr.splice(idx, 1);
+      else arr.push(id);
+      await dbSet(dbKey, arr);
+      renderCurrentApp();
+    }
+
+    function renderXApp() {
+      const isVerified = Boolean(state.accounts.xPhone);
+      const visiblePosts = state.x.tab === 'bookmarks'
+        ? state.x.posts.filter((p) => state.x.bookmarkedIds.includes(p.id))
+        : state.x.posts;
+
+      return `
+        <div class="px-4 pt-2 pb-10 space-y-4">
+          <!-- Header -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-black border border-white/15 flex items-center justify-center font-black text-lg">𝕏</div>
+              <div>
+                <h1 class="text-lg font-extrabold leading-tight">X · Ad-Free</h1>
+                <p class="text-[11px] text-white/55">${isVerified ? state.accounts.xPhone : 'Tap to verify mobile OTP'}</p>
+              </div>
+            </div>
+            <button onclick="openAccountsModal()" class="px-3 py-1.5 rounded-full bg-white/10 text-xs font-semibold">
+              ${isVerified ? state.accounts.xHandle : 'Mobile Login'}
+            </button>
+          </div>
+
+          <!-- For You / Bookmarks Tabs -->
+          <div class="grid grid-cols-2 rounded-2xl bg-white/10 p-1">
+            <button onclick="state.x.tab='foryou'; renderCurrentApp()" class="py-1.5 rounded-xl text-xs font-bold ${state.x.tab === 'foryou' ? 'bg-white text-black' : 'text-white/70'}">For You (No Ads)</button>
+            <button onclick="state.x.tab='bookmarks'; renderCurrentApp()" class="py-1.5 rounded-xl text-xs font-bold ${state.x.tab === 'bookmarks' ? 'bg-white text-black' : 'text-white/70'}">Bookmarks (${state.x.bookmarkedIds.length})</button>
+          </div>
+
+          <!-- Quick Post Composer -->
+          <div class="rounded-2xl bg-[#1C1C1E] border border-white/10 p-3 flex gap-2.5">
+            <input id="x-compose-input" type="text" placeholder="What's happening?" onkeydown="if(event.key==='Enter') publishLocalXPost()" class="flex-1 bg-transparent text-xs text-white placeholder-white/40 focus:outline-none" />
+            <button onclick="publishLocalXPost()" class="px-3.5 py-1.5 rounded-full bg-sky-500 text-black text-xs font-extrabold">Post</button>
+          </div>
+
+          <!-- Feed -->
+          <div class="space-y-3">
+            ${visiblePosts.length === 0 ? `<p class="text-center text-xs text-white/45 py-10">No bookmarked posts yet.</p>` : visiblePosts.map((p) => {
+              const liked = state.x.likedIds.includes(p.id);
+              const reposted = state.x.repostedIds.includes(p.id);
+              const bookmarked = state.x.bookmarkedIds.includes(p.id);
+              return `
+                <article class="rounded-2xl bg-[#1C1C1E] border border-white/10 p-3.5 space-y-2.5">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-xs font-bold text-white">${p.name}</span>
+                      <i data-lucide="badge-check" class="w-3.5 h-3.5 text-sky-400"></i>
+                      <span class="text-[11px] text-white/45">${p.handle} · ${p.time}</span>
+                    </div>
+                  </div>
+                  <p class="text-[13px] text-white/90 leading-relaxed">${p.text}</p>
+                  <div class="flex items-center justify-between pt-1 text-xs text-white/50">
+                    <button onclick="toggleXAction('repost', '${p.id}')" class="flex items-center gap-1 ${reposted ? 'text-emerald-400 font-bold' : ''}">
+                      <i data-lucide="repeat-2" class="w-4 h-4"></i> ${p.reposts + (reposted ? 1 : 0)}
+                    </button>
+                    <button onclick="toggleXAction('like', '${p.id}')" class="flex items-center gap-1 ${liked ? 'text-rose-500 font-bold' : ''}">
+                      <i data-lucide="heart" class="w-4 h-4 ${liked ? 'fill-rose-500' : ''}"></i> ${p.likes + (liked ? 1 : 0)}
+                    </button>
+                    <button onclick="toggleXAction('bookmark', '${p.id}')" class="${bookmarked ? 'text-sky-400' : ''}">
+                      <i data-lucide="bookmark" class="w-4 h-4 ${bookmarked ? 'fill-sky-400' : ''}"></i>
+                    </button>
+                  </div>
+                </article>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // =========================================================
+    // 8. APPLE MUSIC CLONE + GLOBAL CATALOG + DEMUS IMPORTER
+    // =========================================================
+    function triggerDemusImport() {
+      document.getElementById('demus-file-input').click();
+    }
+
+    async function handlePlaylistImport(event) {
+      const files = Array.from(event.target.files || []);
+      if (!files.length) return;
+
+      let importedTracks = [];
+      let playlistTitle = files[0].name.replace(/\.(playlist|zip|json|m3u8?|txt)$/i, '') || 'Demus Imported';
+
+      for (const file of files) {
+        if (file.type.startsWith('audio/')) {
+          const blobUrl = URL.createObjectURL(file);
+          importedTracks.push({
+            id: 'local_' + Date.now() + Math.random(),
+            title: file.name.replace(/\.[^/.]+$/, ''),
+            artist: 'Local Offline Audio',
+            album: 'iPhone Files',
+            art: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80',
+            streamUrl: blobUrl,
+            searchTerm: file.name.replace(/\.[^/.]+$/, '')
+          });
+          continue;
+        }
+
+        // Handle Demus .playlist (ZIP archive or UTF-8 JSON/M3U)
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          const uint8 = new Uint8Array(arrayBuffer);
+          const isZip = uint8[0] === 0x50 && uint8[1] === 0x4B; // 'PK' signature
+
+          if (isZip && window.JSZip) {
+            const zip = await JSZip.loadAsync(arrayBuffer);
+            for (const [entryName, zipEntry] of Object.entries(zip.files)) {
+              if (zipEntry.dir) continue;
+              const rawText = await zipEntry.async('string');
+              const parsed = parseDemusPayload(rawText, entryName);
+              if (parsed.title) playlistTitle = parsed.title;
+              importedTracks.push(...parsed.tracks);
+            }
+          } else {
+            const decoder = new TextDecoder('utf-8', { fatal: false });
+            const text = decoder.decode(uint8);
+            const parsed = parseDemusPayload(text, file.name);
+            if (parsed.title) playlistTitle = parsed.title;
+            importedTracks.push(...parsed.tracks);
+          }
+        } catch (err) {
+          console.error('Import parse error:', err);
+        }
+      }
+
+      if (importedTracks.length === 0) {
+        showToast('Could not read tracks from file. Try exporting from Demus again.');
+        event.target.value = '';
+        return;
+      }
+
+      const newPlaylist = {
+        id: 'pl_' + Date.now(),
+        name: playlistTitle,
+        source: 'Demus Import',
+        cover: importedTracks[0].art || 'https://images.unsplash.com/photo-1614613535768-5e77f11dbd9d?w=500&q=80',
+        tracks: importedTracks
+      };
+
+      state.music.playlists.unshift(newPlaylist);
+      await dbSet('music_playlists', state.music.playlists);
+
+      state.activeApp = 'music';
+      state.music.tab = 'library';
+      renderCurrentApp();
+      showToast(`Imported "${playlistTitle}" (${importedTracks.length} songs)`);
+      event.target.value = '';
+    }
+
+    function parseDemusPayload(rawText, filename) {
+      let title = filename.replace(/\.(playlist|zip|json|m3u8?|txt)$/i, '');
+      const tracks = [];
+
+      // Attempt JSON parsing (Demus / Apple Music / Spotify export format)
+      try {
+        const obj = JSON.parse(rawText);
+        if (obj.name || obj.title) title = obj.name || obj.title;
+        const list = Array.isArray(obj) ? obj : (obj.tracks || obj.items || obj.songs || []);
+        list.forEach((item, idx) => {
+          const trackObj = item.track || item;
+          const tTitle = trackObj.title || trackObj.name || trackObj.trackName;
+          const tArtist = trackObj.artist || trackObj.artistName || (Array.isArray(trackObj.artists) ? trackObj.artists.map(a => a.name || a).join(', ') : 'Unknown Artist');
+          if (tTitle) {
+            tracks.push({
+              id: 'demus_' + Date.now() + '_' + idx,
+              title: String(tTitle).trim(),
+              artist: String(tArtist).trim(),
+              album: trackObj.album || title,
+              art: trackObj.artwork || trackObj.cover || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80',
+              searchTerm: `${tTitle} ${tArtist}`.trim()
+            });
+          }
+        });
+        if (tracks.length > 0) return { title, tracks };
+      } catch {
+        // Fallback to M3U / line-by-line parsing
+      }
+
+      const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      lines.forEach((line, idx) => {
+        if (line.startsWith('#EXTM3U')) return;
+        if (line.startsWith('#EXTINF:')) {
+          const info = line.split(',').slice(1).join(',').trim();
+          const parts = info.split(' - ');
+          tracks.push({
+            id: 'm3u_' + Date.now() + '_' + idx,
+            title: (parts[1] || parts[0] || info).trim(),
+            artist: parts.length > 1 ? parts[0].trim() : 'Demus Track',
+            album: title,
+            art: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&q=80',
+            searchTerm: info
+          });
+        } else if (!line.startsWith('#') && !line.startsWith('http')) {
+          const parts = line.split(' - ');
+          tracks.push({
+            id: 'txt_' + Date.now() + '_' + idx,
+            title: (parts[1] || parts[0]).trim(),
+            artist: parts.length > 1 ? parts[0].trim() : 'Demus Track',
+            album: title,
+            art: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&q=80',
+            searchTerm: line
+          });
+        }
+      });
+
+      return { title, tracks };
+    }
+
+    async function searchGlobalAppleMusic(query) {
+      const q = (query || '').trim();
+      state.music.searchQuery = q;
+      if (!q) {
+        state.music.searchResults = [];
+        renderCurrentApp();
+        return;
+      }
+
+      state.music.searching = true;
+      renderCurrentApp();
+
+      try {
+        // Global iTunes Search API (covers Tamil, English, Hindi, International catalogs)
+        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=song&limit=25`);
+        const data = await res.json();
+        state.music.searchResults = (data.results || []).map((item) => ({
+          id: 'itunes_' + item.trackId,
+          title: item.trackName,
+          artist: item.artistName,
+          album: item.collectionName,
+          art: (item.artworkUrl100 || '').replace('100x100bb', '600x600bb'),
+          streamUrl: item.previewUrl,
+          searchTerm: `${item.trackName} ${item.artistName}`
+        }));
+      } catch {
+        state.music.searchResults = STARTER_TRACKS.filter(t =>
+          t.title.toLowerCase().includes(q.toLowerCase()) || t.artist.toLowerCase().includes(q.toLowerCase())
+        );
+      }
+
+      state.music.searching = false;
+      if (state.activeApp === 'music') renderCurrentApp();
+    }
+
+    async function playPlaylist(playlistId, startIndex = 0) {
+      const pl = state.music.playlists.find(p => p.id === playlistId);
+      if (!pl || !pl.tracks.length) return;
+      state.music.queue = [...pl.tracks];
+      await playTrackAtIndex(startIndex);
+    }
+
+    async function playSingleTrack(trackObj) {
+      state.music.queue = [trackObj, ...STARTER_TRACKS.filter(t => t.id !== trackObj.id)];
+      await playTrackAtIndex(0);
+    }
+
+    async function playTrackAtIndex(index) {
+      if (index < 0 || index >= state.music.queue.length) return;
+      state.music.currentIndex = index;
+      const track = state.music.queue[index];
+
+      updatePlayerMetadataUI(track);
+      showToast(`Loading "${track.title}"...`);
+
+      // Resolve playable audio stream if not already attached
+      if (!track.streamUrl) {
+        try {
+          const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(track.searchTerm || track.title)}&media=music&entity=song&limit=1`);
+          const data = await res.json();
+          if (data.results && data.results[0]) {
+            track.streamUrl = data.results[0].previewUrl;
+            if (data.results[0].artworkUrl100) {
+              track.art = data.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
+              updatePlayerMetadataUI(track);
+            }
+          }
+        } catch (err) {
+          console.warn('Stream lookup fallback:', err);
+        }
+      }
+
+      if (track.streamUrl) {
+        audio.src = track.streamUrl;
+        try {
+          await audio.play();
+          state.music.isPlaying = true;
+        } catch {
+          state.music.isPlaying = false;
+        }
+      }
+      syncPlayPauseIcons();
+      updateMediaSession(track);
+    }
+
+    function updatePlayerMetadataUI(track) {
+      const art = track.art || track.fallbackArt || 'https://images.unsplash.com/photo-1614613535768-5e77f11dbd9d?w=500&q=80';
+      document.getElementById('mini-player').classList.remove('hidden');
+      document.getElementById('mp-art').src = art;
+      document.getElementById('mp-title').textContent = track.title;
+      document.getElementById('mp-artist').textContent = track.artist;
+
+      document.getElementById('np-art').src = art;
+      document.getElementById('np-title').textContent = track.title;
+      document.getElementById('np-artist').textContent = track.artist;
+      document.getElementById('np-source').textContent = track.album || 'Apple Music · Ad-Free';
+
+      // Dynamic Island Now Playing pill
+      document.getElementById('di-idle').classList.add('hidden');
+      const diPlay = document.getElementById('di-playing');
+      diPlay.classList.remove('hidden');
+      diPlay.classList.add('flex');
+      document.getElementById('di-art').src = art;
+      document.getElementById('di-title').textContent = track.title;
+    }
+
+    function togglePlayPause() {
+      if (!audio.src) {
+        playTrackAtIndex(0);
+        return;
+      }
+      if (audio.paused) {
+        audio.play();
+        state.music.isPlaying = true;
+      } else {
+        audio.pause();
+        state.music.isPlaying = false;
+      }
+      syncPlayPauseIcons();
+    }
+
+    function syncPlayPauseIcons() {
+      const playing = !audio.paused;
+      const mpIcon = document.getElementById('mp-play-icon');
+      const npIcon = document.getElementById('np-play-icon');
+      if (mpIcon) mpIcon.setAttribute('data-lucide', playing ? 'pause' : 'play');
+      if (npIcon) npIcon.setAttribute('data-lucide', playing ? 'pause' : 'play');
+      lucide.createIcons();
+    }
+
+    function playNextTrack() {
+      if (!state.music.queue.length) return;
+      const nextIdx = state.music.shuffle
+        ? Math.floor(Math.random() * state.music.queue.length)
+        : (state.music.currentIndex + 1) % state.music.queue.length;
+      playTrackAtIndex(nextIdx);
+    }
+
+    function playPrevTrack() {
+      if (!state.music.queue.length) return;
+      const prevIdx = (state.music.currentIndex - 1 + state.music.queue.length) % state.music.queue.length;
+      playTrackAtIndex(prevIdx);
+    }
+
+    function setupAudioEvents() {
+      audio.addEventListener('timeupdate', () => {
+        if (!audio.duration) return;
+        const pct = (audio.currentTime / audio.duration) * 100;
+        document.getElementById('np-progress').value = pct;
+        document.getElementById('np-current-time').textContent = formatSeconds(audio.currentTime);
+        document.getElementById('np-duration').textContent = formatSeconds(audio.duration);
+      });
+      audio.addEventListener('ended', () => {
+        if (state.music.repeat) {
+          audio.currentTime = 0;
+          audio.play();
+        } else {
+          playNextTrack();
+        }
+      });
+    }
+
+    function seekAudio(val) {
+      if (!audio.duration) return;
+      audio.currentTime = (val / 100) * audio.duration;
+    }
+
+    function formatSeconds(sec) {
+      const s = Math.floor(sec || 0);
+      const m = Math.floor(s / 60);
+      const r = String(s % 60).padStart(2, '0');
+      return `${m}:${r}`;
+    }
+
+    function openNowPlayingModal() {
+      document.getElementById('now-playing-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeNowPlayingModal() {
+      document.getElementById('now-playing-modal').classList.add('hidden');
+    }
+
+    function handleDynamicIslandTap() {
+      if (state.music.currentIndex >= 0) openNowPlayingModal();
+      else switchApp('music');
+    }
+
+    function toggleNowPlayingLyrics() {
+      const artView = document.getElementById('np-artwork-view');
+      const lyrView = document.getElementById('np-lyrics-view');
+      const btn = document.getElementById('np-lyrics-btn');
+      const showingLyrics = !lyrView.classList.contains('hidden');
+      if (showingLyrics) {
+        lyrView.classList.add('hidden');
+        artView.classList.remove('hidden');
+        btn.classList.remove('bg-[#FA243C]', 'text-white');
+      } else {
+        artView.classList.add('hidden');
+        lyrView.classList.remove('hidden');
+        btn.classList.add('bg-[#FA243C]', 'text-white');
+      }
+    }
+
+    function toggleShuffle() {
+      state.music.shuffle = !state.music.shuffle;
+      document.getElementById('np-shuffle-btn').classList.toggle('text-[#FA243C]', state.music.shuffle);
+      showToast(state.music.shuffle ? 'Shuffle On' : 'Shuffle Off');
+    }
+
+    function toggleRepeat() {
+      state.music.repeat = !state.music.repeat;
+      document.getElementById('np-repeat-btn').classList.toggle('text-[#FA243C]', state.music.repeat);
+      showToast(state.music.repeat ? 'Repeat One' : 'Repeat Off');
+    }
+
+    function cycleAudioOutput() {
+      state.music.outputIndex = (state.music.outputIndex + 1) % state.music.outputs.length;
+      document.getElementById('audio-output-label').textContent = state.music.outputs[state.music.outputIndex];
+    }
+
+    async function toggleFavoriteCurrent() {
+      const track = state.music.queue[state.music.currentIndex];
+      if (!track) return;
+      const idx = state.music.favorites.findIndex(f => f.title === track.title);
+      if (idx >= 0) {
+        state.music.favorites.splice(idx, 1);
+        showToast('Removed from Favorite Songs');
+      } else {
+        state.music.favorites.unshift(track);
+        showToast('Added to Favorite Songs');
+      }
+      await dbSet('music_favorites', state.music.favorites);
+    }
+
+    function updateMediaSession(track) {
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: track.title,
+          artist: track.artist,
+          album: track.album || 'Apple Music',
+          artwork: [{ src: track.art || '', sizes: '512x512', type: 'image/jpeg' }]
+        });
+        navigator.mediaSession.setActionHandler('play', togglePlayPause);
+        navigator.mediaSession.setActionHandler('pause', togglePlayPause);
+        navigator.mediaSession.setActionHandler('previoustrack', playPrevTrack);
+        navigator.mediaSession.setActionHandler('nexttrack', playNextTrack);
+      }
+    }
+
+    function renderAppleMusicApp() {
+      const mTab = state.music.tab;
+      return `
+        <div class="bg-black min-h-full px-4 pt-2 pb-16 space-y-5">
+          <!-- Apple Music Top Header -->
+          <div class="flex items-center justify-between">
+            <h1 class="text-[28px] font-extrabold tracking-tight text-white">
+              ${mTab === 'home' ? 'Home' : mTab === 'new' ? 'New' : mTab === 'radio' ? 'Radio' : mTab === 'library' ? 'Library' : 'Search'}
+            </h1>
+            <div class="flex items-center gap-2">
+              <button onclick="triggerDemusImport()" class="px-3 py-1.5 rounded-full bg-[#1C1C1E] border border-white/10 text-[#FA243C] text-xs font-bold flex items-center gap-1.5 active:scale-95">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                <span>Demus Import</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Apple Music Sub-Tab Switcher -->
+          <div class="grid grid-cols-5 gap-1 bg-[#1C1C1E] p-1 rounded-2xl border border-white/10">
+            ${[
+              { id: 'home', label: 'Home' },
+              { id: 'new', label: 'New' },
+              { id: 'radio', label: 'Radio' },
+              { id: 'library', label: 'Library' },
+              { id: 'search', label: 'Search' }
+            ].map(t => `
+              <button onclick="state.music.tab='${t.id}'; renderCurrentApp()" class="py-1.5 rounded-xl text-[11px] font-bold transition-all ${mTab === t.id ? 'bg-[#FA243C] text-white shadow' : 'text-white/60'}">
+                ${t.label}
+              </button>
+            `).join('')}
+          </div>
+
+          <!-- TAB 1: HOME (Top Picks & Recently Played) -->
+          ${mTab === 'home' ? `
+            <div class="space-y-5">
+              <div>
+                <h2 class="text-base font-bold text-white mb-2.5">Top Picks for You</h2>
+                <div class="flex gap-3.5 overflow-x-auto no-scrollbar pb-1">
+                  <div onclick="playPlaylist('${state.music.playlists[0].id}', 0)" class="w-60 shrink-0 rounded-2xl overflow-hidden bg-[#1C1C1E] border border-white/10 cursor-pointer active:scale-95 transition-transform">
+                    <div class="relative h-56">
+                      <img src="${state.music.playlists[0].cover}" class="w-full h-full object-cover" />
+                      <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent p-3.5 flex flex-col justify-end">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-[#FA586A]">Made For You</span>
+                        <p class="text-base font-extrabold text-white leading-tight">${state.music.playlists[0].name}</p>
+                        <p class="text-[11px] text-white/70 mt-0.5">Anirudh, The Weeknd, A.R. Rahman</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div onclick="triggerDemusImport()" class="w-60 shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-[#FA586A] to-[#FA243C] p-4 flex flex-col justify-between cursor-pointer active:scale-95 transition-transform">
+                    <div class="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center">
+                      <i data-lucide="folder-heart" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                      <span class="text-[10px] font-bold uppercase tracking-widest text-white/80">Demus Transfer</span>
+                      <p class="text-lg font-extrabold text-white leading-tight mt-1">Import Your Demus .playlist</p>
+                      <p class="text-xs text-white/85 mt-1">Tap to load your saved tracks straight into Apple Music.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h2 class="text-base font-bold text-white mb-2.5">Global Hits · Instant Play</h2>
+                <div class="grid grid-cols-2 gap-3">
+                  ${STARTER_TRACKS.map((track) => `
+                    <div onclick='playSingleTrack(${JSON.stringify(track).replace(/'/g, "&apos;")})' class="rounded-2xl bg-[#1C1C1E] p-2.5 space-y-2 cursor-pointer active:scale-95 transition-transform">
+                      <img src="${track.art || track.fallbackArt}" onerror="this.src='https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80'" class="w-full aspect-square rounded-xl object-cover" />
+                      <div>
+                        <p class="text-xs font-bold text-white truncate">${track.title}</p>
+                        <p class="text-[11px] text-white/55 truncate">${track.artist}</p>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- TAB 2: NEW -->
+          ${mTab === 'new' ? `
+            <div class="space-y-4">
+              <div class="rounded-3xl bg-gradient-to-r from-[#FA243C] to-rose-700 p-4 space-y-1">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-white/80">Spatial Audio · Lossless</span>
+                <h2 class="text-lg font-extrabold text-white">Top 100: India & Global</h2>
+                <p class="text-xs text-white/85">Updated daily · Zero audio interruptions</p>
+              </div>
+              <div class="space-y-2">
+                ${STARTER_TRACKS.map((t, i) => `
+                  <div onclick='playSingleTrack(${JSON.stringify(t).replace(/'/g, "&apos;")})' class="flex items-center gap-3 p-2.5 rounded-2xl bg-[#1C1C1E] cursor-pointer">
+                    <span class="w-5 text-center text-xs font-extrabold text-[#FA243C]">${i + 1}</span>
+                    <img src="${t.art || t.fallbackArt}" class="w-11 h-11 rounded-xl object-cover" />
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-bold text-white truncate">${t.title}</p>
+                      <p class="text-[11px] text-white/55 truncate">${t.artist}</p>
+                    </div>
+                    <i data-lucide="play" class="w-4 h-4 text-[#FA243C] fill-[#FA243C]"></i>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- TAB 3: RADIO -->
+          ${mTab === 'radio' ? `
+            <div class="space-y-3">
+              ${[
+                { title: 'Apple Music 1', sub: 'Live Worldwide · Pop & Hip-Hop', q: 'The Weeknd Hits' },
+                { title: 'Tamil Hits Radio', sub: 'Anirudh, A.R. Rahman, Yuvan', q: 'Anirudh Ravichander Tamil' },
+                { title: 'Workout & Gym Bass', sub: 'High-Tempo Phonk & Rap', q: 'Travis Scott Gym Workout' }
+              ].map(st => `
+                <div onclick="state.music.tab='search'; searchGlobalAppleMusic('${st.q}')" class="rounded-2xl bg-[#1C1C1E] border border-white/10 p-4 flex items-center justify-between cursor-pointer active:scale-98">
+                  <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-[#FA243C]">LIVE STATION</span>
+                    <h3 class="text-base font-extrabold text-white mt-0.5">${st.title}</h3>
+                    <p class="text-xs text-white/55">${st.sub}</p>
+                  </div>
+                  <div class="w-11 h-11 rounded-full bg-[#FA243C] flex items-center justify-center">
+                    <i data-lucide="radio" class="w-5 h-5 text-white"></i>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+
+          <!-- TAB 4: LIBRARY & DEMUS PLAYLISTS -->
+          ${mTab === 'library' ? `
+            <div class="space-y-4">
+              <button onclick="triggerDemusImport()" class="w-full py-3.5 px-4 rounded-2xl bg-[#FA243C] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg active:scale-98">
+                <i data-lucide="folder-plus" class="w-4 h-4"></i>
+                <span>+ Import Demus .playlist / Audio Files</span>
+              </button>
+
+              <div class="space-y-3">
+                <h2 class="text-sm font-bold text-white/75">Playlists (${state.music.playlists.length})</h2>
+                ${state.music.playlists.map((pl) => `
+                  <div class="rounded-2xl bg-[#1C1C1E] border border-white/10 p-3.5 space-y-3">
+                    <div class="flex items-center justify-between gap-3">
+                      <div class="flex items-center gap-3 min-w-0">
+                        <img src="${pl.cover}" class="w-14 h-14 rounded-xl object-cover shrink-0" />
+                        <div class="min-w-0">
+                          <span class="text-[10px] font-bold uppercase text-[#FA586A]">${pl.source}</span>
+                          <h3 class="text-sm font-extrabold text-white truncate">${pl.name}</h3>
+                          <p class="text-[11px] text-white/55">${pl.tracks.length} songs</p>
+                        </div>
+                      </div>
+                      <button onclick="playPlaylist('${pl.id}', 0)" class="px-3.5 py-2 rounded-full bg-[#FA243C] text-white text-xs font-bold flex items-center gap-1 shrink-0">
+                        <i data-lucide="play" class="w-3.5 h-3.5 fill-white"></i> Play
+                      </button>
+                    </div>
+                    <div class="divide-y divide-white/5 max-h-56 overflow-y-auto no-scrollbar">
+                      ${pl.tracks.map((tr, idx) => `
+                        <div onclick="playPlaylist('${pl.id}', ${idx})" class="py-2 flex items-center justify-between gap-2 cursor-pointer hover:bg-white/5 px-1 rounded-lg">
+                          <div class="min-w-0">
+                            <p class="text-xs font-semibold text-white truncate">${tr.title}</p>
+                            <p class="text-[10px] text-white/50 truncate">${tr.artist}</p>
+                          </div>
+                          <i data-lucide="play-circle" class="w-4 h-4 text-white/40 shrink-0"></i>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- TAB 5: GLOBAL CATALOG SEARCH (All Songs in the World) -->
+          ${mTab === 'search' ? `
+            <div class="space-y-4">
+              <div class="flex gap-2">
+                <div class="flex-1 flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-[#1C1C1E] border border-white/10">
+                  <i data-lucide="search" class="w-4 h-4 text-white/45"></i>
+                  <input id="am-search-input" type="text" value="${state.music.searchQuery}" placeholder="Artists, Songs, Lyrics (Tamil, English, Global)..." onkeydown="if(event.key==='Enter') searchGlobalAppleMusic(this.value)" class="flex-1 bg-transparent text-xs text-white placeholder-white/40 focus:outline-none" />
+                </div>
+                <button onclick="searchGlobalAppleMusic(document.getElementById('am-search-input').value)" class="px-4 rounded-2xl bg-[#FA243C] text-white text-xs font-bold">Search</button>
+              </div>
+
+              ${state.music.searching ? `
+                <p class="text-center text-xs text-white/50 py-10">Searching global Apple Music catalog...</p>
+              ` : state.music.searchResults.length > 0 ? `
+                <div class="space-y-2">
+                  ${state.music.searchResults.map((track) => `
+                    <div onclick='playSingleTrack(${JSON.stringify(track).replace(/'/g, "&apos;")})' class="flex items-center gap-3 p-2.5 rounded-2xl bg-[#1C1C1E] border border-white/5 cursor-pointer active:scale-98">
+                      <img src="${track.art}" class="w-12 h-12 rounded-xl object-cover shrink-0" />
+                      <div class="flex-1 min-w-0">
+                        <p class="text-xs font-bold text-white truncate">${track.title}</p>
+                        <p class="text-[11px] text-white/55 truncate">${track.artist} · ${track.album}</p>
+                      </div>
+                      <i data-lucide="play" class="w-4 h-4 text-[#FA243C] fill-[#FA243C] shrink-0"></i>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : `
+                <div class="grid grid-cols-2 gap-2.5 pt-1">
+                  ${['Anirudh Hits', 'A.R. Rahman Classics', 'The Weeknd', 'Tamil Melody', 'Workout Phonk', 'English Pop 2026'].map(genre => `
+                    <button onclick="searchGlobalAppleMusic('${genre}')" class="p-3.5 rounded-2xl bg-[#1C1C1E] border border-white/10 text-left text-xs font-bold text-white hover:border-[#FA243C]">
+                      ${genre}
+                    </button>
+                  `).join('')}
+                </div>
+              `}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // =========================================================
+    // 9. AD-FREE YOUTUBE + SHORTS MODULE
+    // =========================================================
+    function playYouTubeVideo(ytId, title) {
+      state.youtube.activeVideoId = ytId;
+      state.youtube.activeTitle = title;
+      renderCurrentApp();
+    }
+
+    function searchYouTubeCatalog() {
+      const q = (document.getElementById('yt-search-input').value || '').trim();
+      if (!q) return;
+      state.youtube.query = q;
+      showToast(`Loaded ad-free results for "${q}"`);
+      renderCurrentApp();
+    }
+
+    function renderYouTubeApp() {
+      const gEmail = state.accounts.googleEmail;
+      const isShorts = state.youtube.mode === 'shorts';
+      const embedUrl = `https://www.youtube-nocookie.com/embed/${state.youtube.activeVideoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+
+      return `
+        <div class="px-4 pt-2 pb-12 space-y-4">
+          <!-- Header -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl youtube-icon-bg flex items-center justify-center">
+                <i data-lucide="play" class="w-4 h-4 text-white fill-white ml-0.5"></i>
+              </div>
+              <div>
+                <h1 class="text-lg font-extrabold leading-tight">YouTube · No Ads</h1>
+                <p class="text-[11px] text-white/55">${gEmail ? gEmail : 'Privacy Embed + SponsorBlock'}</p>
+              </div>
+            </div>
+            <button onclick="openAccountsModal()" class="px-3 py-1.5 rounded-full bg-white/10 text-xs font-semibold">
+              ${gEmail ? 'Google Synced' : 'Google Login'}
+            </button>
+          </div>
+
+          <!-- Videos vs Shorts Toggle -->
+          <div class="grid grid-cols-2 rounded-2xl bg-white/10 p-1">
+            <button onclick="state.youtube.mode='videos'; renderCurrentApp()" class="py-1.5 rounded-xl text-xs font-bold ${!isShorts ? 'bg-[#FF3B30] text-white' : 'text-white/70'}">Videos (16:9)</button>
+            <button onclick="state.youtube.mode='shorts'; renderCurrentApp()" class="py-1.5 rounded-xl text-xs font-bold ${isShorts ? 'bg-[#FF3B30] text-white' : 'text-white/70'}">Shorts (Vertical)</button>
+          </div>
+
+          <!-- Privacy-Enhanced No-Cookie Player -->
+          <div class="rounded-3xl overflow-hidden bg-black border border-white/15 shadow-2xl">
+            <div class="${isShorts ? 'aspect-[9/14] max-h-[420px] mx-auto' : 'aspect-video'} w-full bg-black">
+              <iframe src="${embedUrl}" title="YouTube Ad-Free Player" class="w-full h-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+            <div class="p-3 bg-[#1C1C1E] flex items-center justify-between gap-2">
+              <p class="text-xs font-bold text-white truncate flex-1">${state.youtube.activeTitle}</p>
+              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold shrink-0">0 ADS</span>
+            </div>
+          </div>
+
+          <!-- Search Bar -->
+          <div class="flex gap-2">
+            <input id="yt-search-input" type="text" placeholder="Search YouTube ad-free..." onkeydown="if(event.key==='Enter') searchYouTubeCatalog()" class="flex-1 px-3.5 py-2 rounded-xl bg-white/10 border border-white/10 text-xs text-white placeholder-white/40 focus:outline-none" />
+            <button onclick="searchYouTubeCatalog()" class="px-3.5 py-2 rounded-xl bg-[#FF3B30] text-white text-xs font-bold">Search</button>
+          </div>
+
+          <!-- Video Queue -->
+          <div class="space-y-2.5">
+            ${state.youtube.videos.map((v) => `
+              <div onclick="playYouTubeVideo('${v.ytId}', '${v.title.replace(/'/g, "\\'")}')" class="flex gap-3 p-2.5 rounded-2xl bg-[#1C1C1E] border border-white/10 cursor-pointer active:scale-98">
+                <div class="relative w-28 h-16 rounded-xl overflow-hidden shrink-0">
+                  <img src="${v.thumb}" class="w-full h-full object-cover" />
+                  <span class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/80 text-[9px] font-bold">${v.duration}</span>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="text-xs font-bold text-white line-clamp-2 leading-snug">${v.title}</p>
+                  <p class="text-[10px] text-white/50 mt-1">${v.channel} · ${v.views}</p>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // Boot HubOS 26
+    window.addEventListener('DOMContentLoaded', initHubOS);
+  </script>
+</body>
+</html>
