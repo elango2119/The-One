@@ -102,35 +102,23 @@
       <!-- Clear Header Below iPhone Status Bar -->
       <div class="flex items-end justify-between px-1">
         <div>
-          <p class="text-[11px] font-semibold uppercase tracking-widest text-white/50">Official Launcher</p>
+          <p class="text-[11px] font-semibold uppercase tracking-widest text-white/50">App Launcher</p>
           <h1 class="text-3xl font-extrabold tracking-tight text-white mt-0.5">The One</h1>
         </div>
-        <span class="liquid-glass px-3 py-1.5 rounded-full text-[11px] font-bold text-emerald-300 flex items-center gap-1.5">
-          <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
-          <span>Ad-Free</span>
-        </span>
       </div>
 
-      <!-- Music Destination Switcher -->
-      <div class="liquid-glass rounded-2xl p-1.5 flex items-center justify-between gap-1">
-        <button id="btn-ytm" onclick="setMusicTarget('ytm')" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-[#FA243C] text-white transition-all">
-          Music → YT Music (Free)
-        </button>
-        <button id="btn-am" onclick="setMusicTarget('am')" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-white/65 transition-all">
-          Music → Apple Music
-        </button>
-      </div>
-
-      <!-- 2x2 Official App Launcher Grid -->
+      <!-- 2x2 App Launcher Grid -->
       <div class="grid grid-cols-2 gap-4">
-        <!-- 1. Reddit -->
+        <!-- 1. Reddit (Official Logo) -->
         <a href="https://www.reddit.com" target="_blank" rel="noopener" class="liquid-glass rounded-[32px] p-5 flex flex-col items-center text-center gap-3.5 active:scale-95 transition-transform">
           <div class="w-20 h-20 squircle reddit-icon-bg flex items-center justify-center">
-            <i data-lucide="flame" class="w-10 h-10 text-white fill-white"></i>
+            <svg class="w-11 h-11 text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 2.25a.75.75 0 0 1 .75.75v2.05c1.82.12 3.47.66 4.73 1.48a2.1 2.1 0 1 1 2.77 3.04c.16.47.25.96.25 1.47 0 3.73-3.58 6.76-8 6.76s-8-3.03-8-6.76c0-.51.09-1 .25-1.47a2.1 2.1 0 1 1 2.77-3.04c1.26-.82 2.91-1.36 4.73-1.48V3a.75.75 0 0 1 .75-.75zm3.22 3.85c-1.03-.42-2.1-.6-3.22-.6s-2.19.18-3.22.6l.68 1.56a.75.75 0 0 1-1.15.92l-.95-.82a.6.6 0 1 0-.78.9l.86.74c-.3.48-.51 1-.61 1.54-.21 1.14.12 2.34.96 3.34 1.12 1.33 2.94 2.08 5.04 2.08s3.92-.75 5.04-2.08c.84-1 1.17-2.2.96-3.34-.1-.54-.31-1.06-.61-1.54l.86-.74a.6.6 0 1 0-.78-.9l-.95.82a.75.75 0 0 1-1.15-.92l.68-1.56zM9.25 11.2a1.35 1.35 0 1 1 0 2.7 1.35 1.35 0 0 1 0-2.7zm5.5 0a1.35 1.35 0 1 1 0 2.7 1.35 1.35 0 0 1 0-2.7zm-5.62 4.46a.75.75 0 0 1 1.05-.16c.54.4 1.17.6 1.82.6s1.28-.2 1.82-.6a.75.75 0 1 1 .89 1.21 4.48 4.48 0 0 1-2.71.89 4.48 4.48 0 0 1-2.71-.89.75.75 0 0 1-.16-1.05z"/>
+            </svg>
           </div>
           <div>
             <p class="text-base font-extrabold text-white">Reddit</p>
-            <p class="text-[11px] text-white/55 mt-0.5">Google Login · Web</p>
+            <p class="text-[11px] text-white/55 mt-0.5">reddit.com</p>
           </div>
         </a>
 
@@ -141,12 +129,12 @@
           </div>
           <div>
             <p class="text-base font-extrabold text-white">X</p>
-            <p class="text-[11px] text-white/55 mt-0.5">Mobile OTP · Web</p>
+            <p class="text-[11px] text-white/55 mt-0.5">x.com</p>
           </div>
         </a>
 
-        <!-- 3. Music -->
-        <a id="music-app-link" href="https://music.youtube.com" target="_blank" rel="noopener" class="liquid-glass rounded-[32px] p-5 flex flex-col items-center text-center gap-3.5 active:scale-95 transition-transform">
+        <!-- 3. Music (YouTube Music by Default) -->
+        <a href="https://music.youtube.com" target="_blank" rel="noopener" class="liquid-glass rounded-[32px] p-5 flex flex-col items-center text-center gap-3.5 active:scale-95 transition-transform">
           <div class="w-20 h-20 squircle apple-music-icon-bg flex items-center justify-center">
             <svg class="w-10 h-10 text-white" viewBox="0 0 24 24" fill="currentColor">
               <path d="M19.5 3.2L9.2 5.3c-.6.1-1 .7-1 1.3v9.7c-.6-.3-1.3-.4-2-.3-1.8.2-3.2 1.6-3.2 3.3 0 1.8 1.5 3.1 3.4 2.9 1.7-.2 3.1-1.6 3.1-3.3V9.5l9-1.9v6.7c-.6-.3-1.3-.4-2-.3-1.8.2-3.2 1.6-3.2 3.3 0 1.8 1.5 3.1 3.4 2.9 1.7-.2 3.1-1.6 3.1-3.3V4.3c0-.7-.6-1.2-1.3-1.1z"/>
@@ -154,7 +142,7 @@
           </div>
           <div>
             <p class="text-base font-extrabold text-white">Music</p>
-            <p id="music-app-sub" class="text-[11px] text-[#FA586A] font-semibold mt-0.5">YouTube Music · Free</p>
+            <p class="text-[11px] text-[#FA586A] font-semibold mt-0.5">music.youtube.com</p>
           </div>
         </a>
 
@@ -165,7 +153,7 @@
           </div>
           <div>
             <p class="text-base font-extrabold text-white">YouTube</p>
-            <p class="text-[11px] text-white/55 mt-0.5">Google Login · Web</p>
+            <p class="text-[11px] text-white/55 mt-0.5">youtube.com</p>
           </div>
         </a>
       </div>
@@ -174,25 +162,6 @@
   </div>
 
   <script>
-    function setMusicTarget(mode) {
-      const link = document.getElementById('music-app-link');
-      const sub = document.getElementById('music-app-sub');
-      const btnYtm = document.getElementById('btn-ytm');
-      const btnAm = document.getElementById('btn-am');
-
-      if (mode === 'ytm') {
-        link.href = 'https://music.youtube.com';
-        sub.textContent = 'YouTube Music · Free';
-        btnYtm.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-[#FA243C] text-white transition-all';
-        btnAm.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold text-white/65 transition-all';
-      } else {
-        link.href = 'https://music.apple.com';
-        sub.textContent = 'Apple Music Web';
-        btnAm.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-[#FA243C] text-white transition-all';
-        btnYtm.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold text-white/65 transition-all';
-      }
-    }
-
     window.addEventListener('DOMContentLoaded', () => lucide.createIcons());
   </script>
 </body>
