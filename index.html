@@ -96,33 +96,33 @@
   </style>
 </head>
 <body>
-  <div id="ios-shell" class="ios-wallpaper flex flex-col justify-between px-5 pt-4 pb-8 overflow-y-auto">
+  <div id="ios-shell" class="ios-wallpaper flex flex-col justify-center px-5 pt-14 pb-10 overflow-y-auto">
 
-    <!-- Top Header -->
-    <div class="space-y-5">
-      <div class="flex items-center justify-between pt-2">
+    <div class="space-y-6 my-auto">
+      <!-- Clear Header Below iPhone Status Bar -->
+      <div class="flex items-end justify-between px-1">
         <div>
-          <p class="text-[11px] font-semibold uppercase tracking-widest text-white/50">Official Web Launcher</p>
-          <h1 class="text-3xl font-extrabold tracking-tight text-white">The One</h1>
+          <p class="text-[11px] font-semibold uppercase tracking-widest text-white/50">Official Launcher</p>
+          <h1 class="text-3xl font-extrabold tracking-tight text-white mt-0.5">The One</h1>
         </div>
-        <button onclick="toggleAdFreeGuide()" class="liquid-glass px-3.5 py-2 rounded-full flex items-center gap-2 text-xs font-bold text-emerald-300 active:scale-95">
-          <i data-lucide="shield-check" class="w-4 h-4"></i>
-          <span>Ad-Free Setup</span>
-        </button>
+        <span class="liquid-glass px-3 py-1.5 rounded-full text-[11px] font-bold text-emerald-300 flex items-center gap-1.5">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+          <span>Ad-Free</span>
+        </span>
       </div>
 
       <!-- Music Destination Switcher -->
       <div class="liquid-glass rounded-2xl p-1.5 flex items-center justify-between gap-1">
-        <button id="btn-ytm" onclick="setMusicTarget('ytm')" class="flex-1 py-2 rounded-xl text-xs font-bold bg-[#FA243C] text-white transition-all">
+        <button id="btn-ytm" onclick="setMusicTarget('ytm')" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-[#FA243C] text-white transition-all">
           Music → YT Music (Free)
         </button>
-        <button id="btn-am" onclick="setMusicTarget('am')" class="flex-1 py-2 rounded-xl text-xs font-bold text-white/65 transition-all">
+        <button id="btn-am" onclick="setMusicTarget('am')" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-white/65 transition-all">
           Music → Apple Music
         </button>
       </div>
 
       <!-- 2x2 Official App Launcher Grid -->
-      <div class="grid grid-cols-2 gap-4 pt-1">
+      <div class="grid grid-cols-2 gap-4">
         <!-- 1. Reddit -->
         <a href="https://www.reddit.com" target="_blank" rel="noopener" class="liquid-glass rounded-[32px] p-5 flex flex-col items-center text-center gap-3.5 active:scale-95 transition-transform">
           <div class="w-20 h-20 squircle reddit-icon-bg flex items-center justify-center">
@@ -154,7 +154,7 @@
           </div>
           <div>
             <p class="text-base font-extrabold text-white">Music</p>
-            <p id="music-app-sub" class="text-[11px] text-[#FA586A] font-semibold mt-0.5">All Songs · Full Length</p>
+            <p id="music-app-sub" class="text-[11px] text-[#FA586A] font-semibold mt-0.5">YouTube Music · Free</p>
           </div>
         </a>
 
@@ -171,18 +171,6 @@
       </div>
     </div>
 
-    <!-- Bottom Ad-Free Safari Extension Note -->
-    <div id="adfree-card" class="liquid-glass rounded-3xl p-4 space-y-2">
-      <div class="flex items-center justify-between">
-        <span class="text-xs font-extrabold text-emerald-300 flex items-center gap-1.5">
-          <i data-lucide="sparkles" class="w-4 h-4"></i> How to Block All Ads on Official Sites
-        </span>
-      </div>
-      <p class="text-[11px] text-white/75 leading-relaxed">
-        Install free <strong>AdGuard</strong> or <strong>wBlock</strong> from the iOS App Store → open <strong>iPhone Settings → Apps → Safari → Extensions</strong> → toggle all switches ON. Every link above will open your real logged-in account with <strong>zero video or feed ads</strong>.
-      </p>
-    </div>
-
   </div>
 
   <script>
@@ -195,20 +183,14 @@
       if (mode === 'ytm') {
         link.href = 'https://music.youtube.com';
         sub.textContent = 'YouTube Music · Free';
-        btnYtm.className = 'flex-1 py-2 rounded-xl text-xs font-bold bg-[#FA243C] text-white transition-all';
-        btnAm.className = 'flex-1 py-2 rounded-xl text-xs font-bold text-white/65 transition-all';
+        btnYtm.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-[#FA243C] text-white transition-all';
+        btnAm.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold text-white/65 transition-all';
       } else {
         link.href = 'https://music.apple.com';
         sub.textContent = 'Apple Music Web';
-        btnAm.className = 'flex-1 py-2 rounded-xl text-xs font-bold bg-[#FA243C] text-white transition-all';
-        btnYtm.className = 'flex-1 py-2 rounded-xl text-xs font-bold text-white/65 transition-all';
+        btnAm.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold bg-[#FA243C] text-white transition-all';
+        btnYtm.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold text-white/65 transition-all';
       }
-    }
-
-    function toggleAdFreeGuide() {
-      const card = document.getElementById('adfree-card');
-      card.classList.toggle('ring-2');
-      card.classList.toggle('ring-emerald-400');
     }
 
     window.addEventListener('DOMContentLoaded', () => lucide.createIcons());
